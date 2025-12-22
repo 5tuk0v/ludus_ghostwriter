@@ -1,0 +1,122 @@
+---
+- name: Check if Ghostwriter install path exists
+  ansible.builtin.stat:
+    path: "{{ ludus_ghostwriter_install_path }}"
+  register: ghostwriter_installed
+
+- name: Show message
+  ansible.builtin.debug:
+    msg: "Ghostwriter is already installed - to run this play again remove the directory {{ ludus_ghostwriter_install_path }}"
+  when: ghostwriter_installed.stat.exists
+
+- name: Stop role if Ghostwriter is already installed
+  meta: end_host
+  when: ghostwriter_installed.stat.exists
+
+- name: Ensure git is installed
+  become: true
+  ansible.builtin.package:
+    name: git
+    state: present
+   
+- name: Create Ghostwriter install directory
+  become: true
+  ansible.builtin.file:
+    path: "{{ ludus_ghostwriter_install_path }}"
+    state: directory
+    mode: '0755'
+
+- name: Clone Ghostwriter repository
+  become: true
+  git:
+    repo: 'https://github.com/GhostManager/Ghostwriter.git'
+    dest: "{{ ludus_ghostwriter_install_path }}"
+  
+- name: Create ghostwriter-cli symlink
+  become: true
+  ansible.builtin.file:
+    src: "{{ ludus_ghostwriter_install_path }}/ghostwriter-cli-linux"
+    dest: /usr/local/bin/ghostwriter-cli
+    state: link
+    force: yes
+
+# Workaround for https://github.com/GhostManager/Ghostwriter/issues/768
+# ---------------------------------------------------------------------
+- name: Remove Hasura expose lines from production.yml
+  ansible.builtin.replace:
+    path: "{{ ludus_ghostwriter_install_path }}/production.yml"
+    regexp: '^\s*-\s*"\$\{HASURA_GRAPHQL_SERVER_PORT\}:8080"'
+    replace: ''
+
+- name: Remove Hasura extra port expose line from production.yml
+  ansible.builtin.replace:
+    path: "{{ ludus_ghostwriter_install_path }}/production.yml"
+    regexp: '^\s*-\s*"9691:9691"'
+    replace: ''
+
+- name: Remove Postgres expose line from production.yml
+  ansible.builtin.replace:
+    path: "{{ ludus_ghostwriter_install_path }}/production.yml"
+    regexp: '^\s*-\s*"\$\{POSTGRES_PORT\}:5432"'
+    replace: ''
+
+- name: Remove expose key if it is empty
+  ansible.builtin.replace:
+    path: "{{ ludus_ghostwriter_install_path }}/production.yml"
+    regexp: '^\s*expose:\s*$'
+    replace: ''
+# ---------------------------------------------------------------------
+
+- name: Install Ghostwriter with CLI (dev or prod)
+  become: true
+  command: ghostwriter-cli install {{ '--dev' if ludus_ghostwriter_development_mode else '' }}
+  args:
+    chdir: "{{ ludus_ghostwriter_install_path }}"
+  register: ghostwriter_install
+  failed_when: ghostwriter_install.rc != 0
+
+- name: Allow access to Ghostwriter from host IP
+  become: true
+  ansible.builtin.command: ghostwriter-cli config allowhost {{ ansible_host }}
+  args:
+    chdir: "{{ ludus_ghostwriter_install_path }}"
+  when: ludus_ghostwriter_allow_host_ip
+  register: ghostwriter_allowhost
+
+- block:
+    - name: Stop Ghostwriter containers
+      ansible.builtin.command: ghostwriter-cli containers down {{ '--dev' if ludus_ghostwriter_development_mode else '' }}
+      args:
+        chdir: "{{ ludus_ghostwriter_install_path }}"
+
+    - name: Start Ghostwriter containers
+      ansible.builtin.command: ghostwriter-cli containers up {{ '--dev' if ludus_ghostwriter_development_mode else '' }}
+      args:
+        chdir: "{{ ludus_ghostwriter_install_path }}"
+  when: ludus_ghostwriter_allow_host_ip
+  become: true
+
+- name: Get Ghostwriter admin password
+  become: true
+  ansible.builtin.shell: ghostwriter-cli config get admin_password | awk '/ADMIN_PASSWORD/ {print $2}'
+  args:
+    chdir: "{{ ludus_ghostwriter_install_path }}"
+  register: ghostwriter_admin_password
+
+- name: Set Ghostwriter access URL
+  set_fact:
+    ghostwriter_access_url: >-
+      {{ 'http://' ~ ansible_host ~ ':8000'
+         if ludus_ghostwriter_development_mode
+         else 'https://' ~ ansible_host }}
+
+- name: Ghostwriter installation summary
+  debug:
+    msg:
+      - "Ghostwriter installation: SUCCESS"
+      - "Mode: {{ 'development' if ludus_ghostwriter_development_mode else 'production' }}"
+      - "Access URL: {{ ghostwriter_access_url }}"
+      - "Admin user: admin"
+      - "Admin password: {{ ghostwriter_admin_password.stdout }}"
+      - "You can manage Ghostwriter after deployment with `sudo ghostwriter-cli`."
+

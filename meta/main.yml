@@ -1,0 +1,27 @@
+---
+dependencies:
+  - role: geerlingguy.docker
+
+galaxy_info:
+  role_name: ludus_ghostwriter
+  author: 5tuk0v
+  description: An Ansible Role that installs Ghostwriter on a Linux-based host using ghostwriter-cli (Docker Compose).
+  company: ''
+  license: GPLv3
+  min_ansible_version: "2.10"
+  platforms:
+    - name: Debian
+      versions:
+        - buster
+        - bullseye
+        - bookworm
+    - name: Ubuntu
+      versions:
+        - bionic
+        - focal
+        - jammy
+  galaxy_tags:
+    - specterops
+    - reporting
+    - ghostwriter
+    - ludus

@@ -1,0 +1,4 @@
+---
+ludus_ghostwriter_install_path: "/opt/ghostwriter"
+ludus_ghostwriter_development_mode: true
+ludus_ghostwriter_allow_host_ip: true
