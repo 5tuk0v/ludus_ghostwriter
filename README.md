@@ -2,7 +2,7 @@
 
 # Ansible Role: Ghostwriter ([Ludus](https://ludus.cloud))
 
-An Ansible Role that installs [Ghostwriter](https://github.com/GhostManager/Ghostwriter) on on a Linux-based host using ghostwriter-cli and Docker Compose.
+An Ansible Role that installs [Ghostwriter](https://github.com/GhostManager/Ghostwriter) on a Linux-based host using ghostwriter-cli and Docker Compose.
 
 > [!WARNING]
 > Ghostwriter is a containerized application composed of multiple Docker services. According to [the documentation](https://www.ghostwriter.wiki/getting-started/quickstart#before-you-begin:-system-requirements), the following resources are needed for the host running the containers:  
