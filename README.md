@@ -68,3 +68,6 @@ GPLv3
 ## Author Information
 
 This role was created by [5tuk0v](https://github.com/5tuk0v), for [Ludus](https://ludus.cloud/).
+
+- GitHub: [@5tuk0v](https://github.com/5tuk0v)
+- Twitter/X: [@stuk0v_](https://twitter.com/stuk0v_)
