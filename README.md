@@ -1,5 +1,3 @@
-# README
-
 # Ansible Role: Ghostwriter ([Ludus](https://ludus.cloud))
 
 An Ansible Role that installs [Ghostwriter](https://github.com/GhostManager/Ghostwriter) on a Linux-based host using ghostwriter-cli and Docker Compose.
