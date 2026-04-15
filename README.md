@@ -2,11 +2,6 @@
 
 An Ansible Role that installs [Ghostwriter](https://github.com/GhostManager/Ghostwriter) on a Linux-based host using ghostwriter-cli and Docker Compose.
 
-> [!WARNING]
-> Ghostwriter is a containerized application composed of multiple Docker services. According to [the documentation](https://www.ghostwriter.wiki/getting-started/quickstart#before-you-begin:-system-requirements), the following resources are needed for the host running the containers:  
-> - Minimum: 2 vCPUs + 3Gb RAM  
-> - Recommended: 5 vCPUs + 4Gb RAM
-
 ## Requirements
 
 A Debian (buster, bullseye, bookworm) or Ubuntu (bionic, focal, jammy) host.
@@ -49,7 +44,7 @@ ludus:
     template: ubuntu-22.04-x64-server-template
     vlan: 10
     ip_last_octet: 10
-    ram_gb: 3
+    ram_gb: 2
     cpus: 2
     linux: true
     roles:

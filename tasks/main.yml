@@ -42,7 +42,7 @@
 
 - name: Install Ghostwriter with CLI (dev or prod)
   become: true
-  command: ghostwriter-cli install {{ '--dev' if ludus_ghostwriter_development_mode else '' }}
+  command: ghostwriter-cli install {{ '--mode local-dev' if ludus_ghostwriter_development_mode else '' }}
   args:
     chdir: "{{ ludus_ghostwriter_install_path }}"
   register: ghostwriter_install
@@ -50,7 +50,7 @@
 
 - name: Allow access to Ghostwriter from host IP
   become: true
-  ansible.builtin.command: ghostwriter-cli config allowhost {{ ansible_host }}
+  ansible.builtin.command: ghostwriter-cli config allowhost {{ '--mode local-dev' if ludus_ghostwriter_development_mode else '' }} {{ ansible_host }}
   args:
     chdir: "{{ ludus_ghostwriter_install_path }}"
   when: ludus_ghostwriter_allow_host_ip
@@ -58,12 +58,12 @@
 
 - block:
     - name: Stop Ghostwriter containers
-      ansible.builtin.command: ghostwriter-cli containers down {{ '--dev' if ludus_ghostwriter_development_mode else '' }}
+      ansible.builtin.command: ghostwriter-cli containers down {{ '--mode local-dev' if ludus_ghostwriter_development_mode else '' }}
       args:
         chdir: "{{ ludus_ghostwriter_install_path }}"
 
     - name: Start Ghostwriter containers
-      ansible.builtin.command: ghostwriter-cli containers up {{ '--dev' if ludus_ghostwriter_development_mode else '' }}
+      ansible.builtin.command: ghostwriter-cli containers up {{ '--mode local-dev' if ludus_ghostwriter_development_mode else '' }}
       args:
         chdir: "{{ ludus_ghostwriter_install_path }}"
   when: ludus_ghostwriter_allow_host_ip
@@ -71,7 +71,7 @@
 
 - name: Get Ghostwriter admin password
   become: true
-  ansible.builtin.shell: ghostwriter-cli config get admin_password | awk '/ADMIN_PASSWORD/ {print $2}'
+  ansible.builtin.shell: ghostwriter-cli config get admin_password {{ '--mode local-dev' if ludus_ghostwriter_development_mode else '' }} | awk '/ADMIN_PASSWORD/ {print $2}'
   args:
     chdir: "{{ ludus_ghostwriter_install_path }}"
   register: ghostwriter_admin_password
